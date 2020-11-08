@@ -5,14 +5,32 @@ $(document).ready(() => {
     $('#btn').click(() => {
         mountResult()
     })
+    
 })
 
-function mountResult(){
+let mountResult = () => {
     $.ajax(`https://pokeapi.co/api/v2/pokemon/?offset=${q}&limit=20`)
-    .done(function(data){
+    .done((data) => {
         let results = data.results;
-        $.each(results, function(key, value){
-            $('#pokemons').append(`<div class="card my-2 p-3">${value.name}</div>`)
+        $.each(results, (key, value) => {
+            $.ajax(`${value.url}`)
+            .done((data) => {
+
+                let abilities = []
+                let moves = []
+                let pok_moves = data.moves.slice(0,5)
+
+                $.each(data.abilities, (k, v) => {
+                    let pok_abilities = v.ability.name
+                    abilities.push(pok_abilities)
+                })
+                $.each(pok_moves, (k,v) => {
+                    moves.push(v.move.name)
+                })
+
+                $('#pokemons').append(`<div class="card my-2 p-3 w-50 mx-auto"><img class="card-img-top w-25 h-25 align-self-center" src="${data.sprites.front_default}" alt="Card image cap"><div class="card-body text-center font-weight-bold"><p>${data.name}</p><button type="button" class="btn btn-primary mx-3" data-toggle="modal" data-target="#pokeModal" data-name="${data.name}" data-type="${data.types[0].type.name}" data-abilities="${abilities}" data-moves="${moves}">¡Quiero saber más de este Pokemon!</button>`)
+            })
+            
         })
         q += 20
     })
@@ -22,3 +40,17 @@ function mountResult(){
         }
     })
 }
+
+$('#pokeModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget)
+    var pokemon = button.data('name')
+    var type = button.data('type')
+    var abilities = button.data('abilities')
+    var moves = button.data('moves')
+    var modal = $(this)
+    modal.find('.modal-title').text(pokemon)
+    modal.find('.type').text(type)
+    modal.find('.generations').text(pokemon)
+    modal.find('.abilities').text(abilities)
+    modal.find('.moves').text(moves)
+  })
